@@ -9,8 +9,8 @@ testUrl = "https://www.so.com/" # 利用了360搜索
 keyWord = "360"
 timeout = 5 # 设置超时
 threadNumber = 50 # 设置线程数
-proxiesFileName = "proxies.txt"
-successFileName = "success.txt"
+proxiesFileName = "./proxies.txt"
+successFileName = "./success.txt"
 # config-end
 
 def testOnline(ip,port,protocol):

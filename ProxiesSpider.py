@@ -5,12 +5,13 @@ import requests
 import time
 import sys
 from bs4 import BeautifulSoup
+import os
 
 reload(sys)
 sys.setdefaultencoding('UTF-8')
 
 # config-start
-proxiesFileName = "proxies.txt"  # 获取到的代理保存的文件名
+filePath = "./proxies/"
 timeout = 5  # 连接超时时间
 urls = [
     'http://bjcore.xicidaili.com/nn',  # 国内匿名
@@ -60,14 +61,23 @@ urls = [
 
 def getSimpleContent(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML,  like Gecko) Chrome/54.0.2840.99 Safari/537.36'}
-    return requests.get(url, headers=headers).text.encode('UTF-8')
+    try:
+        content = requests.get(url, headers=headers).text.encode('UTF-8')
+    except:
+        content = ""
+    return content
 
 
 def analysis(url):
+    global filePath
     print "Getting content of url...",
     content = getSimpleContent(url)
-    print "Ok!"
     results = []
+    if content == "":
+        print "Err while get the content of this page."
+        return results
+    else:
+        print "Ok!"
     print "Parsing..."
     soup = BeautifulSoup(content, "html.parser")
     if "xicidaili" in url:
@@ -105,7 +115,7 @@ def analysis(url):
             if proxyType == "qq":  # 将代理类型从QQ代理替换为SOCKS5
                 protocol = u"SOCKS5"
             # 记录日志文件
-            appendToFile(fileName, ip + ":" + port + "@" + protocol + "#" + location + ", " + anonymous + "\r\n")
+            appendToFile(filePath, fileName, ip + ":" + port + "@" + protocol + "#" + location + ", " + anonymous + "\r\n")
         return
     elif "proxy360" in url:
         print u"Using : proxy360模块"
@@ -155,7 +165,7 @@ def analysis(url):
             # 这个网站并没有指定代理的协议 ,  这里默认使用HTTP协议
             protocol = "HTTP"
             # 记录日志文件
-            appendToFile(fileName, ip + ":" + port + "@" + protocol + "#" + location + ", " + anonymous + "\r\n")
+            appendToFile(filePath, fileName, ip + ":" + port + "@" + protocol + "#" + location + ", " + anonymous + "\r\n")
         return
     elif "kuaidaili" in url:
         print u"Using : 快代理模块"
@@ -171,7 +181,7 @@ def analysis(url):
             tempName = url.split("/")[-1]
             fileName = u"快代理-" + tempName + "-" + str(getNowTime("%Y-%m-%d-%H-%M-%S")) + ".txt"
             # 记录日志文件
-            appendToFile(fileName, ip + ":" + port + "@" + protocol + "#" + location + ", " + anonymous + "\r\n")
+            appendToFile(filePath, fileName, ip + ":" + port + "@" + protocol + "#" + location + ", " + anonymous + "\r\n")
         return
     elif "ip3366" in url:
         print u"Using : 云代理模块"
@@ -188,8 +198,8 @@ def analysis(url):
             fileName = u"云代理-"+tempName+"-"+str(getNowTime("%Y-%m-%d-%H-%M-%S"))+".txt"
             # 这里有万恶的编码问题 ,  暂时没有能力解决 ,  中文的描述就先不写到文件里了
             # 记录日志文件
-            # appendToFile(fileName, ip+":"+port+"@"+protocol+"#"+location+", "+anonymous+"\r\n")
-            appendToFile(fileName, ip + ":" + port + "@" + protocol + "\r\n")
+            # appendToFile(filePath, fileName, ip+":"+port+"@"+protocol+"#"+location+", "+anonymous+"\r\n")
+            appendToFile(filePath, fileName, ip + ":" + port + "@" + protocol + "\r\n")
         return
     else:
         return
@@ -199,8 +209,8 @@ def getNowTime(format):
     return time.strftime(format, time.localtime(time.time()))
 
 
-def appendToFile(fileName, content):
-    file = open(fileName, "a+")
+def appendToFile(filePath, fileName, content):
+    file = open(filePath + fileName, "a+")
     file.write(content)
     file.close()
 
@@ -215,8 +225,21 @@ def getAllProxies():
         analysis(url)
 
 
+def mergeAllProxiesFiles():
+    global filePath
+    command = "cat ./proxies/* > proxies.txt"
+    os.system(command)
+
+
+def verify():
+    command = "python ./lib/verify.py"
+    os.system(command)
+
+
 def main():
     getAllProxies()
+    mergeAllProxiesFiles()
+    verify()
 
 
 if __name__ == '__main__':
