@@ -236,7 +236,12 @@ def verify():
     os.system(command)
 
 
+def init():
+    os.system("mkdir proxies")
+
+
 def main():
+    init()
     getAllProxies()
     mergeAllProxiesFiles()
     verify()
